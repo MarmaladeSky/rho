@@ -1,7 +1,6 @@
 package org.http4s.rho.swagger
 
 import cats.syntax.option._
-import io.swagger.v3.oas.models.media
 import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.servers.{ServerVariable, ServerVariables}
 import io.swagger.v3.oas.{models => jm}
@@ -162,7 +161,7 @@ object models {
   }
 
   case class Paths(
-      paths: Map[String, PathItem] = Map.empty,
+      paths: ListMap[String, PathItem] = ListMap.empty,
       extensions: Map[String, Any] = Map.empty
   ) {
 
@@ -287,7 +286,7 @@ object models {
     def content: Map[String, MediaType]
     def extensions: Map[String, Any]
 
-    private[Parameter] def jConstructor: jm.parameters.Parameter
+    def jConstructor: jm.parameters.Parameter
 
     def toJModel: jm.parameters.Parameter =
       jConstructor
@@ -357,7 +356,7 @@ object models {
     override val in: Parameter.in = Parameter.in.path
     override val required: Option[Boolean] = true.some
 
-    override private[Parameter] def jConstructor = new jm.parameters.PathParameter
+    override def jConstructor = new jm.parameters.PathParameter
 
   }
 
@@ -370,7 +369,7 @@ object models {
       explode: Option[Boolean] = None,
       allowReserved: Option[Boolean] = None,
       schema: Option[Schema[_]] = None,
-      example: Option[Any],
+      example: Option[Any] = None,
       examples: Map[String, Example] = Map.empty,
       content: Map[String, MediaType] = Map.empty,
       extensions: Map[String, Any] = Map.empty
@@ -378,7 +377,7 @@ object models {
 
     override val in: Parameter.in = Parameter.in.query
 
-    override private[Parameter] def jConstructor: jm.parameters.QueryParameter =
+    override def jConstructor: jm.parameters.QueryParameter =
       new jm.parameters.QueryParameter
 
   }
@@ -391,7 +390,7 @@ object models {
       style: Option[Parameter.Style] = Parameter.Style.simple.some,
       explode: Option[Boolean] = None,
       schema: Option[Schema[_]] = None,
-      example: Option[Any],
+      example: Option[Any] = None,
       examples: Map[String, Example] = Map.empty,
       content: Map[String, MediaType] = Map.empty,
       extensions: Map[String, Any] = Map.empty
@@ -399,7 +398,7 @@ object models {
 
     override val in: Parameter.in = Parameter.in.header
 
-    override private[Parameter] def jConstructor = new jm.parameters.HeaderParameter
+    override def jConstructor = new jm.parameters.HeaderParameter
 
   }
 
@@ -419,7 +418,7 @@ object models {
 
     override val in: Parameter.in = Parameter.in.cookie
 
-    override private[Parameter] def jConstructor = new jm.parameters.CookieParameter
+    override def jConstructor = new jm.parameters.CookieParameter
 
   }
 
@@ -442,10 +441,10 @@ object models {
   }
 
   case class MediaType(
-      schema: Option[Schema[_]],
-      example: Option[Any],
-      examples: Map[String, Example],
-      encoding: Map[String, Encoding],
+      schema: Option[Schema[_]] = None,
+      example: Option[Any] = None,
+      examples: Map[String, Example] = Map.empty,
+      encoding: Map[String, Encoding] = Map.empty,
       extensions: Map[String, Any] = Map.empty
   ) {
 
@@ -681,7 +680,7 @@ object models {
     def externalDocs: Option[ExternalDocumentation] = None
     def deprecated: Option[Boolean] = None
     def xml: Option[XML] = None
-    def extensions: Map[String, Any] = Map.empty
+    def extensions: Map[String, AnyRef] = Map.empty
     def _enum: List[T] = Nil
     def discriminator: Option[Discriminator] = None
     def exampleSetFlag: Boolean = false
@@ -689,30 +688,167 @@ object models {
     def allOf: List[Schema[_]] = Nil
     def anyOf: List[Schema[_]] = Nil
     def oneOf: List[Schema[_]] = Nil
+    def items: Option[Schema[_]] = None
 
-    def toJModel: jm.media.Schema[T]
+    def toJModel: jm.media.Schema[T] =
+      new jm.media.Schema[T]
+        .name(name.orNull)
+        .title(title.orNull)
+        .multipleOf(multipleOf.map(_.bigDecimal).orNull)
+        .maximum(maximum.map(_.bigDecimal).orNull)
+        .exclusiveMaximum(exclusiveMaximum.map(java.lang.Boolean.valueOf).orNull)
+        .minimum(minimum.map(_.bigDecimal).orNull)
+        .exclusiveMinimum(exclusiveMinimum.map(java.lang.Boolean.valueOf).orNull)
+        .maxLength(maxLength.map(Integer.valueOf).orNull)
+        .minLength(minLength.map(Integer.valueOf).orNull)
+        .pattern(pattern.orNull)
+        .maxItems(maxItems.map(Integer.valueOf).orNull)
+        .minItems(minItems.map(Integer.valueOf).orNull)
+        .uniqueItems(uniqueItems.map(java.lang.Boolean.valueOf).orNull)
+        .maxProperties(maxProperties.map(Integer.valueOf).orNull)
+        .minProperties(minProperties.map(Integer.valueOf).orNull)
+        .required(required.asJava)
+        .`type`(`type`.orNull)
+        .not(not.map(_.toJModel).orNull)
+        .properties(properties.view.mapValues(_.toJModel).toMap.asJava)
+        .additionalProperties(additionalProperties.orNull)
+        .description(description.orNull)
+        .format(format.orNull)
+        .$ref($ref.orNull)
+        .nullable(nullable.map(java.lang.Boolean.valueOf).orNull)
+        .readOnly(readOnly.map(java.lang.Boolean.valueOf).orNull)
+        .writeOnly(writeOnly.map(java.lang.Boolean.valueOf).orNull)
+        .example(example.orNull)
+        .externalDocs(externalDocs.map(_.toJModel).orNull)
+        .deprecated(deprecated.map(java.lang.Boolean.valueOf).orNull)
+        .xml(xml.map(_.toJModel).orNull)
+        .extensions(extensions.asJava)
+        ._enum(_enum.asJava)
+        .discriminator(discriminator.map(_.toJModel).orNull)
+        .exampleSetFlag(exampleSetFlag)
+        .prefixItems(prefixItems.asJava)
+        .allOf(allOf.asJava)
+        .anyOf(anyOf.asJava)
+        .oneOf(oneOf.asJava)
+        .items(items.orNull)
   }
 
   object Schema {
 
-    case class RefSchema(id: String, ref: String) extends Schema[Any] {
+    def apply[T](
+        _id: String,
+        _name: Option[String] = None,
+        _title: Option[String] = None,
+        _multipleOf: Option[BigDecimal] = None,
+        _maximum: Option[BigDecimal] = None,
+        _exclusiveMaximum: Option[Boolean] = None,
+        _minimum: Option[BigDecimal] = None,
+        _exclusiveMinimum: Option[Boolean] = None,
+        _maxLength: Option[Int] = None,
+        _minLength: Option[Int] = None,
+        _pattern: Option[String] = None,
+        _maxItems: Option[Int] = None,
+        _minItems: Option[Int] = None,
+        _uniqueItems: Option[Boolean] = None,
+        _maxProperties: Option[Int] = None,
+        _minProperties: Option[Int] = None,
+        _required: List[String] = Nil,
+        `_type`: Option[String] = None,
+        _not: Option[Schema[_]] = None,
+        _properties: Map[String, Schema[_]] = Map.empty,
+        _additionalProperties: Option[Object] = None,
+        _description: Option[String] = None,
+        _format: Option[String] = None,
+        _$ref: Option[String] = None,
+        _nullable: Option[Boolean] = None,
+        _readOnly: Option[Boolean] = None,
+        _writeOnly: Option[Boolean] = None,
+        _example: Option[T] = None,
+        _externalDocs: Option[ExternalDocumentation] = None,
+        _deprecated: Option[Boolean] = None,
+        _xml: Option[XML] = None,
+        _extensions: Map[String, AnyRef] = Map.empty,
+        __enum: List[T] = Nil,
+        _discriminator: Option[Discriminator] = None,
+        _exampleSetFlag: Boolean = false,
+        _prefixItems: List[Schema[_]] = Nil,
+        _allOf: List[Schema[_]] = Nil,
+        _anyOf: List[Schema[_]] = Nil,
+        _oneOf: List[Schema[_]] = Nil,
+        _items: Option[Schema[_]] = None
+    ): Schema[T] =
+      new Schema[T] {
+        override def id = _id
+        override def name = _name
+        override def title = _title
+        override def multipleOf = _multipleOf
+        override def maximum = _maximum
+        override def exclusiveMaximum = _exclusiveMaximum
+        override def minimum = _minimum
+        override def exclusiveMinimum = _exclusiveMinimum
+        override def maxLength = _maxLength
+        override def minLength = _minLength
+        override def pattern = _pattern
+        override def maxItems = _maxItems
+        override def minItems = _minItems
+        override def uniqueItems = _uniqueItems
+        override def maxProperties = _maxProperties
+        override def minProperties = _minProperties
+        override def required = _required
+        override def `type` = `_type`
+        override def not = _not
+        override def properties = _properties
+        override def additionalProperties = _additionalProperties
+        override def description = _description
+        override def format = _format
+        override def $ref = _$ref
+        override def nullable = _nullable
+        override def readOnly = _readOnly
+        override def writeOnly = _writeOnly
+        override def example = _example
+        override def externalDocs = _externalDocs
+        override def deprecated = _deprecated
+        override def xml = _xml
+        override def extensions = _extensions
+        override def _enum = __enum
+        override def discriminator = _discriminator
+        override def exampleSetFlag = _exampleSetFlag
+        override def prefixItems = _prefixItems
+        override def allOf = _allOf
+        override def anyOf = _anyOf
+        override def oneOf = _oneOf
+        override def items = _items
+      }
 
-      override def toJModel: media.Schema[Any] =
-        new jm.media.Schema[Any]
-          .$ref(ref)
-          .asInstanceOf[jm.media.Schema[Any]]
+    case class ArraySchema(id: String, itemsSchema: Schema[_]) extends Schema[Object] {
 
+      override def `type`: Option[String] = "array".some
+
+      override def items: Option[Schema[_]] = itemsSchema.some
     }
+
+    case class FileSchema(id: String) extends Schema[String] {}
 
     case class ObjectSchema(id: String) extends Schema[Object] {
 
       override def `type`: Option[String] = "object".some
 
-      override def toJModel: media.Schema[Object] =
-        new jm.media.Schema[Object]
-          .asInstanceOf[jm.media.Schema[Object]]
+    }
+
+    case class PrimitiveSchema(id: String, typeName: String) extends Schema[Object] {
+
+      override def `type`: Option[String] = typeName.some
 
     }
+
+    case class RefSchema(id: String, ref: String) extends Schema[Any] {
+
+      override def $ref: Option[String] = ref.some
+
+    }
+
+    case class StringSchema(id: String, enums: Set[String] = Set.empty)
+        extends Schema[String] {} //TODO enums are not working
 
   }
 

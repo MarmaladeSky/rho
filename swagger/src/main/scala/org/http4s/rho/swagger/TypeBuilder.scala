@@ -2,12 +2,12 @@ package org.http4s.rho.swagger
 
 import java.util.Date
 import java.time.Instant
-
 import org.log4s.getLogger
 
 import scala.reflect.runtime.universe._
 import scala.util.control.NonFatal
 import cats.syntax.all._
+import org.http4s.rho.swagger.models.Schema.RefSchema
 
 import scala.collection.immutable.ListSet
 
@@ -18,19 +18,19 @@ object TypeBuilder {
 
   private[this] val logger = getLogger
 
-  def collectModels(t: Type, alreadyKnown: Set[Model], sfs: SwaggerFormats, et: Type)(implicit
-      st: ShowType): Set[Model] =
+  def collectModels(t: Type, alreadyKnown: Set[Schema[_]], sfs: SwaggerFormats, et: Type)(implicit
+      st: ShowType): Set[Schema[_]] =
     try collectModels(t.dealias, alreadyKnown, ListSet.empty, sfs, et)
     catch { case NonFatal(_) => Set.empty }
 
   private def collectModels(
       t: Type,
-      alreadyKnown: Set[Model],
+      alreadyKnown: Set[Schema[_]],
       known: TypeSet,
       sfs: SwaggerFormats,
-      et: Type)(implicit st: ShowType): Set[Model] = {
+      et: Type)(implicit st: ShowType): Set[Schema[_]] = {
 
-    def go(t: Type, alreadyKnown: Set[Model], known: TypeSet): Set[Model] =
+    def go(t: Type, alreadyKnown: Set[Schema[_]], known: TypeSet): Set[Schema[_]] =
       t.dealias match {
 
         case tpe if alreadyKnown.exists(_.id == tpe.fullName) =>
@@ -86,8 +86,7 @@ object TypeBuilder {
           val ownModel = maybeParentSumType match {
             case Some(parentSumType) =>
               val parentType = parentSumType.asType.toType
-              val parentRefModel =
-                RefModel(parentType.fullName, parentType.simpleName, parentType.simpleName)
+              val parentRefModel = RefSchema(id = parentType.fullName, ref = parentType.fullName)
               modelToSwagger(tpe, sfs).map(composedModel(parentRefModel)).toSet
             case None if symIsSumType =>
               modelToSwagger(tpe, sfs)
@@ -117,7 +116,7 @@ object TypeBuilder {
     go(t, alreadyKnown, known)
   }
 
-  private def addDiscriminator(sym: Symbol)(model: ModelImpl)(implicit st: ShowType): ModelImpl = {
+  private def addDiscriminator(sym: Symbol)(model: Schema[_])(implicit st: ShowType): Schema[_] = {
     val typeVar = sym.annotations
       .withFilter(_.tree.tpe <:< typeOf[DiscriminatorField])
       .flatMap(_.tree.children.tail.collect { case Literal(Constant(field: String)) => field })
@@ -134,7 +133,7 @@ object TypeBuilder {
       )
   }
 
-  private def composedModel(parent: RefModel)(subtype: Model): Model =
+  private def composedModel(parent: Schema[_])(subtype: Schema[_]): Schema[_] =
     ComposedModel(
       id = subtype.id,
       id2 = subtype.id2,
@@ -157,7 +156,7 @@ object TypeBuilder {
     }
 
   private def modelToSwagger(tpe: Type, sfs: SwaggerFormats)(implicit
-      st: ShowType): Option[ModelImpl] =
+      st: ShowType): Option[Schema[_]] =
     try {
       val TypeRef(_, sym: Symbol, tpeArgs: List[Type]) = tpe
       val constructor = tpe.member(termNames.CONSTRUCTOR)
@@ -185,7 +184,7 @@ object TypeBuilder {
     }
 
   private def paramSymToProp(sym: Symbol, tpeArgs: List[Type], sfs: SwaggerFormats)(pSym: Symbol)(
-      implicit st: ShowType): (String, Property) = {
+      implicit st: ShowType): (String, Schema[_]) = {
     val pType = pSym.typeSignature.substituteTypes(sym.asClass.typeParams, tpeArgs)
     val required = !(pSym.asTerm.isParamWithDefault || pType.isOption)
     val prop = typeToProperty(pType, sfs)
@@ -193,7 +192,7 @@ object TypeBuilder {
   }
 
   // Turn a `Type` into the appropriate `Property` representation
-  private def typeToProperty(tpe: Type, sfs: SwaggerFormats)(implicit st: ShowType): Property =
+  private def typeToProperty(tpe: Type, sfs: SwaggerFormats)(implicit st: ShowType): Schema[_] =
     sfs.customFieldSerializers.applyOrElse(
       tpe,
       { _: Type =>
@@ -226,7 +225,7 @@ object TypeBuilder {
       }
     )
 
-  private def dataTypeFromType(tpe: Type)(implicit showType: ShowType): Property =
+  private def dataTypeFromType(tpe: Type)(implicit showType: ShowType): Schema[_] =
     DataType.fromType(tpe) match {
       case DataType.ValueDataType(name, format, qName) =>
         AbstractProperty(`type` = name, description = qName, format = format)
@@ -282,8 +281,11 @@ object TypeBuilder {
       def apply(v: DataType): DataType = new ContainerDataType("Array", Some(v))
     }
 
-    def apply(name: String, format: Option[String] = None, qualifiedName: Option[String] = None) =
-      new ValueDataType(name, format, qualifiedName)
+    def apply(
+        name: String,
+        format: Option[String] = None,
+        qualifiedName: Option[String] = None): ValueDataType =
+      ValueDataType(name, format, qualifiedName)
 
     def apply(tag: TypeTag[_])(implicit st: ShowType): DataType = apply(tag.tpe)
     def apply(tag: Type)(implicit st: ShowType): DataType = fromType(tag.dealias)
