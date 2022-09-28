@@ -1,2 +1,2 @@
-(ThisBuild / organization) := "org.http4s"
+(ThisBuild / organization) := "digital.junkie"
 (ThisBuild / apiVersion) := RhoPlugin.extractApiVersion(version.value)

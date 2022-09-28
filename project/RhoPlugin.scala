@@ -11,7 +11,7 @@ object RhoPlugin extends AutoPlugin {
 
   override def trigger = allRequirements
 
-  val homepageUrl = "https://github.com/http4s/rho"
+  val homepageUrl = "https://github.com/MarmaladeSky/rho"
 
   def extractApiVersion(version: String) = {
     val VersionExtractor = """(\d+)\.(\d+)\..*""".r

@@ -114,7 +114,7 @@ lazy val buildSettings = publishing ++
     scalacOptions --= disabledCompilerFlags,
     resolvers += Resolver.sonatypeRepo("snapshots"),
     (run / fork) := true,
-    (ThisBuild / organization) := "org.http4s",
+    (ThisBuild / organization) := "digital.junkie",
     (ThisBuild / homepage) := Some(url(homepageUrl)),
     description := "A self documenting DSL build upon the http4s framework",
     license,
