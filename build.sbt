@@ -151,23 +151,9 @@ lazy val publishing = Seq(
 lazy val extras = (ThisBuild / pomExtra) := (
   <developers>
     <developer>
-      <id>brycelane</id>
-      <name>Bryce L. Anderson</name>
-      <email>bryce.anderson22@gmail.com</email>
-    </developer>
-    <developer>
-      <id>before</id>
-      <name>André Rouél</name>
-    </developer>
-    <developer>
-      <id>rossabaker</id>
-      <name>Ross A. Baker</name>
-      <email>ross@rossabaker.com</email>
-    </developer>
-    <developer>
-      <id>zarthross</id>
-      <name>Darren A Gibson</name>
-      <email>zarthross@gmail.com</email>
+      <id>marmaladesky</id>
+      <name>David Akermann</name>
+      <email>david.akermann@proton.me</email>
     </developer>
   </developers>
 )
