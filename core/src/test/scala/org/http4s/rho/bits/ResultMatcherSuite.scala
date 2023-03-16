@@ -3,10 +3,10 @@ package rho
 package bits
 
 import cats.effect.IO
-import fs2.Chunk
 import munit.FunSuite
 import org.http4s.rho.io._
 import org.http4s.{Status => HStatus}
+import scodec.bits.ByteVector
 import shapeless.HList
 
 import scala.reflect.runtime.universe._
@@ -67,7 +67,7 @@ class ResultMatcherSuite extends FunSuite {
         val a = 0
         a match {
           case 0 => Ok(s"Not found")
-          case 1 => Ok("Hello world".getBytes())
+          case 1 => Ok(ByteVector("Hello world".getBytes()))
         }
       }
     }
@@ -122,10 +122,10 @@ class ResultMatcherSuite extends FunSuite {
     case class ModelB(name: String, id: Long)
 
     implicit def w1[F[_]]: EntityEncoder[F, ModelA] =
-      EntityEncoder.simple[ModelA]()(_ => Chunk.array("A".getBytes))
+      EntityEncoder.simple[ModelA]()(_ => ByteVector("A".getBytes))
 
     implicit def w2[F[_]]: EntityEncoder[F, ModelB] =
-      EntityEncoder.simple[ModelB]()(_ => Chunk.array("B".getBytes))
+      EntityEncoder.simple[ModelB]()(_ => ByteVector("B".getBytes))
 
     val srvc = new TRhoRoutes[IO] {
       GET / "foo" |>> { () =>
@@ -165,8 +165,8 @@ object Foo {
   case class FooB(name: String, id: Long)
 
   implicit def w1[F[_]]: EntityEncoder[F, FooA] =
-    EntityEncoder.simple[FooA]()(_ => Chunk.array("A".getBytes))
+    EntityEncoder.simple[FooA]()(_ => ByteVector("A".getBytes))
 
   implicit def w2[F[_]]: EntityEncoder[F, FooB] =
-    EntityEncoder.simple[FooB]()(_ => Chunk.array("B".getBytes))
+    EntityEncoder.simple[FooB]()(_ => ByteVector("B".getBytes))
 }

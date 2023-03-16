@@ -1,13 +1,13 @@
 package org.http4s.rho
 package swagger
 
+import _root_.io.circe._
+import _root_.io.circe.generic.auto._
+import _root_.io.circe.parser._
+import cats._
 import cats.effect.IO
 import cats.syntax.all._
-import cats._
-import _root_.io.circe._
-import _root_.io.circe.parser._
-import _root_.io.circe.generic.auto._
-import fs2.{Chunk, Stream}
+import fs2.Stream
 import munit.FunSuite
 import org.http4s.Method._
 import org.http4s._
@@ -16,9 +16,9 @@ import org.http4s.rho.bits.PathAST.{PathAnd, PathCapture}
 import org.http4s.rho.bits._
 import org.http4s.rho.io._
 import org.http4s.rho.swagger.syntax.io._
+import scodec.bits.ByteVector
 
 import scala.collection.compat.immutable.ArraySeq
-import scala.collection.immutable.Seq
 import scala.reflect.runtime.universe._
 
 object SwaggerModelsBuilderSuite {
@@ -1075,10 +1075,10 @@ class SwaggerModelsBuilderSuite extends FunSuite {
       .withContentType(`Content-Type`(MediaType.application.json, Charset.`UTF-8`))
 
   implicit def listEntityEncoder[F[_], A]: EntityEncoder[F, List[A]] =
-    EntityEncoder.simple[List[A]]()(_ => Chunk.array("A".getBytes))
+    EntityEncoder.simple[List[A]]()(_ => ByteVector("A".getBytes))
 
   implicit def mapEntityEncoder[F[_], A, B]: EntityEncoder[F, Map[A, B]] =
-    EntityEncoder.simple[Map[A, B]]()(_ => Chunk.array("A".getBytes))
+    EntityEncoder.simple[Map[A, B]]()(_ => ByteVector("A".getBytes))
 
   case class CsvFile()
 
