@@ -145,7 +145,10 @@ lazy val publishing = Seq(
   (ThisBuild / scmInfo) := {
     val base = "github.com/http4s/rho"
     Some(ScmInfo(url(s"https://$base"), s"scm:git:https://$base", Some(s"scm:git:git@$base")))
-  }
+  },
+  // Override settings for the account created after Feb 2021
+  ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org",
+  sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
 )
 
 lazy val extras = (ThisBuild / pomExtra) := (
