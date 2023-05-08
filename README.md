@@ -1,10 +1,13 @@
 ρ: A DSL for building HTTP services with http4s
 -----------------------------------------------
 
-[![CI](https://github.com/http4s/rho/workflows/CI/badge.svg)](https://github.com/http4s/rho/actions?query=workflow%3A%22CI%22)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.http4s/rho-core_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.http4s/rho-core_2.12)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/digital.junkie/rho-core_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/digital.junkie/rho-core_2.13)
 [![Gitter](https://badges.gitter.im/http4s/rho.svg)](https://gitter.im/http4s/rho?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
+This is a forked repository of the incredible, yet abandoned, Swagger/OpenAPI http4s library.
+We have two primary objectives:  
+- The minimum goal is to ensure compatibility with all modern versions of http4s, starting from 1.0.0-M38
+- The ultimate goal is to create comprehensive documentation, enhance Swagger/OpenAPI specification support, and expand the library's functionality.
 
 ```scala
 val httpService = new RhoRoutes[IO] {
@@ -14,7 +17,7 @@ val httpService = new RhoRoutes[IO] {
 }
 ```
 
-See the [tutorial](https://github.com/http4s/rho/blob/master/Rho.md), [wiki](https://github.com/http4s/rho/wiki) and the [tests](https://github.com/http4s/rho/blob/master/core/src/test/scala/ApiExamples.scala) for more examples.
+See the [tutorial](https://github.com/MarmaladeSky/rho/blob/main/Rho.md) and the [tests](https://github.com/MarmaladeSky/rho/blob/main/core/src/test/scala/ApiExamples.scala) for more examples.
 
 ### Get more from your route definitions
 The primary goal of ρ is to provide an easy to use AST with which to build HTTP services which can be inspected to extract a variety of information including:
@@ -23,16 +26,17 @@ The primary goal of ρ is to provide an easy to use AST with which to build HTTP
 
 Get ρ
 -----
-Rho artifacts are available at Maven Central and snapshots are available from the Sonatype repositories.
+Rho artifacts are available from the Sonatype repositories.
 
-Read the [Rho Scaladocs](https://www.javadoc.io/doc/org.http4s/rho-core_2.13/latest/index.html)
+Read the [Rho Scaladocs](https://www.javadoc.io/doc/digital.junkie/rho-core_2.13/latest/index.html)
 
 ```scala
 resolvers += Resolver.sonatypeRepo("snapshots")  // Only if you are using a -snapshot version
 
-libraryDependencies += "org.http4s" %% "rho-swagger" % version
+libraryDependencies += "digital.junkie" %% "rho-swagger" % your_http4s_version
 
 ```
+The versioning is done with lockstep versioning of http4s starting from 1.0.0-M38.
 
 Stability
 ---------
@@ -46,7 +50,7 @@ Contributions of all kinds are welcome! Documentation contributions are especial
 for others who are also just learning to use ρ. The wiki and the tests are the primary
 source of documentation. Pull requests are greatly appreciated from their original authors,
 licensed to the http4s project under the project's
-[open source license](https://github.com/http4s/rho/blob/master/LICENSE).
+[open source license](https://github.com/MarmaladeSky/rho/blob/master/LICENSE).
 
 License
 -------
